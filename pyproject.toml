@@ -1,0 +1,36 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+    "wheel", 
+    "pybind11>=2.10.0",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radon"
+version = "0.1.0"
+description = "GPU-accelerated array operations using CUDA and pybind11"
+requires-python = ">=3.11"
+dependencies = [
+    "jupyter>=1.1.1",
+    "numpy>2",
+    "pybind11>=2.13.6",
+    "torch>=2.7.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+### So this is basically forcing cuda 12.8 -- in future need to figure out best practices for this
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+torchvision = [
+  { index = "pytorch-cu128", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
