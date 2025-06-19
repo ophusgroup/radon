@@ -19,7 +19,7 @@ extern "C" {
     void launch_add_arrays(const float* a, const float* b, float* c, int n) {
         dim3 blockSize(256);
         dim3 gridSize((n + blockSize.x - 1) / blockSize.x);
-        
+
         add_arrays_kernel<<<gridSize, blockSize>>>(a, b, c, n);
         cudaDeviceSynchronize();
     }
