@@ -3,7 +3,7 @@ GPU-accelerated radon transforms using CUDA and pybind11
 """
 
 try:
-    from .cuda._cuda_add import add_arrays
+    from .cuda import add_arrays
 
     __all__ = ["add_arrays"]
 except ImportError:

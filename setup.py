@@ -69,8 +69,8 @@ ext_modules = [
     Pybind11Extension(
         "radon.cuda._cuda_add",
         [
-            "src/radon/cuda/add_arrays_kernel.cu",
-            "src/radon/cuda/add_arrays_bindings.cpp",
+            "src/radon/cuda/ext.cpp",
+            "src/radon/cuda/csrc/add_arrays_kernel.cu",
         ],
         include_dirs=[
             pybind11.get_include(),
