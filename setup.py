@@ -63,6 +63,7 @@ def get_cuda_paths():
 
 
 cuda_paths = get_cuda_paths()
+print("rebuild")
 
 # Define the extension module
 ext_modules = [

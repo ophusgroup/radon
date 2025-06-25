@@ -7,10 +7,12 @@ extern "C" void launch_add_arrays(const float* a, const float* b, float* c, int 
 
 extern "C" void launch_subtract_arrays(const float* a, const float* b, float* c, int n);
 
+namespace py = pybind11;
+
 // Python wrapper function
-pybind11::array_t<float> add_arrays_cuda(
-    pybind11::array_t<float> input_a,
-    pybind11::array_t<float> input_b
+py::array_t<float> add_arrays_cuda(
+    py::array_t<float> input_a,
+    py::array_t<float> input_b
 ) {
     auto buf_a = input_a.request();
     auto buf_b = input_b.request();
@@ -39,7 +41,7 @@ pybind11::array_t<float> add_arrays_cuda(
     launch_add_arrays(d_a, d_b, d_c, n);
 
     // Create output array
-    auto result = pybind11::array_t<float>(n);
+    auto result = py::array_t<float>(n);
     auto buf_result = result.request();
 
     // Copy result back to host
@@ -53,9 +55,9 @@ pybind11::array_t<float> add_arrays_cuda(
     return result;
 }
 
-pybind11::array_t<float> subtract_arrays_cuda(
-    pybind11::array_t<float> input_a,
-    pybind11::array_t<float> input_b
+py::array_t<float> subtract_arrays_cuda(
+    py::array_t<float> input_a,
+    py::array_t<float> input_b
 ) {
     auto buf_a = input_a.request();
     auto buf_b = input_b.request();
@@ -84,7 +86,7 @@ pybind11::array_t<float> subtract_arrays_cuda(
     launch_subtract_arrays(d_a, d_b, d_c, n);
 
     // Create output array
-    auto result = pybind11::array_t<float>(n);
+    auto result = py::array_t<float>(n);
     auto buf_result = result.request();
 
     // Copy result back to host

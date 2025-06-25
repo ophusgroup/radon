@@ -12,6 +12,7 @@ __global__ void add_arrays_kernel(const float* a, const float* b, float* c, int 
             printf("Hello from CUDA thread %d: %.2f + %.2f = %.2f\n", idx, a[idx], b[idx], c[idx]);
         }
     }
+    __syncthreads();  // Ensure all threads complete before returning
 }
 
 __global__ void subtract_arrays_kernel(const float* a, const float* b, float* c, int n) {
@@ -23,6 +24,7 @@ __global__ void subtract_arrays_kernel(const float* a, const float* b, float* c,
             printf("Hello from CUDA thread %d: %.2f - %.2f = %.2f\n", idx, a[idx], b[idx], c[idx]);
         }
     }
+    __syncthreads();  // Ensure all threads complete before returning
 }
 
 // Host function to launch the kernel
