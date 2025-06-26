@@ -2,6 +2,8 @@
 #include <pybind11/numpy.h>
 #include <cuda_runtime.h>
 
+#include "include/utils.h"
+
 // Declare the CUDA function
 extern "C" void launch_add_arrays(const float* a, const float* b, float* c, int n);
 

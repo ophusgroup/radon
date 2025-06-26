@@ -33,6 +33,7 @@ class build_ext(_build_ext):
                 "--compiler-options",
                 "-fPIC",
                 "-I" + pybind11.get_include(),
+                "-I" + 'src/radon/cuda/include',
             ]
 
             # Add CUDA include paths
@@ -63,7 +64,7 @@ def get_cuda_paths():
 
 
 cuda_paths = get_cuda_paths()
-print("rebuild")
+print("Editing to rebuild")
 
 # Define the extension module
 ext_modules = [
