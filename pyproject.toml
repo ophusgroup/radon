@@ -45,6 +45,7 @@ select = [
 ignore = [
     "E501",  # line too long, handled by ruff format
 ]
+exclude = ["**/*.ipynb", "**/.github/**", "**/.vscode/**"]
 
 [tool.ruff.format]
 quote-style = "double"
