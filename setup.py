@@ -3,7 +3,8 @@ import os
 import os.path as osp
 import pathlib
 
-from setuptools import find_packages, setup
+from setuptools import setup
+
 
 def get_ext():
     from torch.utils.cpp_extension import BuildExtension
@@ -24,8 +25,8 @@ def get_cuda_paths():
 
 cuda_paths = get_cuda_paths()
 
+
 def get_extensions():
-    import torch
     from torch.utils.cpp_extension import CUDAExtension
 
     extensions_dir = osp.join("src", "radon", "cuda")
@@ -36,8 +37,8 @@ def get_extensions():
 
     # Updated to use C++17 or higher
     extra_compile_args = {
-        "cxx": ["-O3", "-std=c++17"], 
-        "nvcc": ["-O3", "--use_fast_math", "-std=c++17"]
+        "cxx": ["-O3", "-std=c++17"],
+        "nvcc": ["-O3", "--use_fast_math", "-std=c++17"],
     }
     extra_link_args = ["-s"]
 
@@ -48,17 +49,14 @@ def get_extensions():
     cuda_home = os.environ.get("CUDA_HOME", "/usr/local/cuda")
     if not os.path.exists(cuda_home):
         cuda_home = "/usr"  # Try system CUDA installation
-    
+
     cuda_include = os.path.join(cuda_home, "include")
     if os.path.exists(cuda_include):
         include_dirs.append(cuda_include)
 
     # Add library directories for CUDA
     library_dirs = []
-    cuda_lib_dirs = [
-        os.path.join(cuda_home, "lib64"),
-        os.path.join(cuda_home, "lib")
-    ]
+    cuda_lib_dirs = [os.path.join(cuda_home, "lib64"), os.path.join(cuda_home, "lib")]
     for lib_dir in cuda_lib_dirs:
         if os.path.exists(lib_dir):
             library_dirs.append(lib_dir)
@@ -73,6 +71,7 @@ def get_extensions():
         extra_link_args=extra_link_args,
     )
     return [extension]
+
 
 setup(
     ext_modules=get_extensions(),
