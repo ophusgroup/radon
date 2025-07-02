@@ -1,3 +1,4 @@
+#include <torch/extension.h>
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 #include <stdio.h>
@@ -29,19 +30,19 @@ __global__ void subtract_arrays_kernel(const float* a, const float* b, float* c,
 
 // Host function to launch the kernel
 extern "C" {
-    void launch_add_arrays(const float* a, const float* b, float* c, int n) {
+    void launch_add_arrays(torch::Tensor& a, torch::Tensor& b, torch::Tensor& c, int n) {
         dim3 blockSize(256);
         dim3 gridSize((n + blockSize.x - 1) / blockSize.x);
 
-        add_arrays_kernel<<<gridSize, blockSize>>>(a, b, c, n);
+        add_arrays_kernel<<<gridSize, blockSize>>>(a.data_ptr<float>(), b.data_ptr<float>(), c.data_ptr<float>(), n);
         cudaDeviceSynchronize();
     }
 
-    void launch_subtract_arrays(const float* a, const float* b, float* c, int n) {
+    void launch_subtract_arrays(torch::Tensor& a, torch::Tensor& b, torch::Tensor& c, int n) {
         dim3 blockSize(256);
         dim3 gridSize((n + blockSize.x - 1) / blockSize.x);
 
-        subtract_arrays_kernel<<<gridSize, blockSize>>>(a, b, c, n);
+        subtract_arrays_kernel<<<gridSize, blockSize>>>(a.data_ptr<float>(), b.data_ptr<float>(), c.data_ptr<float>(), n);
         cudaDeviceSynchronize();
     }
 }

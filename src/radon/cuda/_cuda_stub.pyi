@@ -1,11 +1,10 @@
-import numpy as np
-from numpy.typing import NDArray
+from torch import Tensor
 
 def add_arrays(
-    input_a: NDArray[np.float32], input_b: NDArray[np.float32]
-) -> NDArray[np.float32]: ...
+    input_a: Tensor, input_b: Tensor, output_c: Tensor
+) -> None: ...
 
 
 def subtract_arrays(
-    input_a: NDArray[np.float32], input_b: NDArray[np.float32]
-) -> NDArray[np.float32]: ...
+    input_a: Tensor, input_b: Tensor, output_c: Tensor
+) -> None: ...
