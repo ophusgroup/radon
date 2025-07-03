@@ -14,7 +14,7 @@ extern "C" void launch_add_arrays(torch::Tensor& a, torch::Tensor& b, torch::Ten
 
 extern "C" void launch_subtract_arrays(torch::Tensor& a, torch::Tensor& b, torch::Tensor& result, int n);
 
-// namespace py = pybind11;
+namespace py = pybind11;
 
 // Python wrapper function
 void add_arrays_cuda(

@@ -3,10 +3,12 @@ GPU-accelerated radon transforms using CUDA and pybind11
 """
 
 try:
+    # This seems necessary, as otherwise the cuda kernels cannot be loaded, but it feels like
+    # bad practice because now the entirity of torch is accessible from radon.radon.torch
     from .radon import Radon
 except ImportError as err:
     print("Unable to import Radon class from radon module.")
-    raise ImportError("Torch is required for this package.") from err
+    raise ImportError("Radon unavailable. Check Torch availability") from err
 
 try:
     from .cuda_backend import add_arrays, subtract_arrays
