@@ -11,3 +11,4 @@ bool DeviceSizeKey::operator==(const DeviceSizeKey &o) const {
 std::ostream &operator<<(std::ostream &os, DeviceSizeKey const &m) {
     return os << "(device: " << m.device << ", batch: " << m.batch << ", width: " << m.width << ", height: " << m.height
               << ", channels: " << m.channels << ", precision: " << m.precision << ")";
+}
