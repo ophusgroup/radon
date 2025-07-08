@@ -11,12 +11,21 @@ except ImportError as err:
     raise ImportError("Radon unavailable. Check Torch availability") from err
 
 try:
-    from .cuda_backend import add_arrays, subtract_arrays
-    __all__ = ["add_arrays", "subtract_arrays"]
+    from .cuda_backend import add_arrays, subtract_arrays, forward, backward
+    __all__ = ["add_arrays", "subtract_arrays", "forward", "backward"]
     print("CUDA backend loaded successfully.")
 except ImportError as err:
     print("Warning: CUDA backend not available. Make sure to build the extension.")
     __all__ = []
     raise ImportError("CUDA backend is unavailable.") from err
+
+try:
+    from .cuda import RaysCfg, TextureCache
+    __all__.append("TextureCache")
+    __all__.append("RaysCfg")
+    print("RaysCfg loaded successfully.")
+except ImportError as err:
+    print("Warning: RaysCfg not available. Make sure to build the extension.")
+    raise ImportError("RaysCfg is unavailable.") from err
 
 __version__ = "0.1.0"
