@@ -71,7 +71,15 @@ radon_forward_kernel(T *__restrict__ output, cudaTextureObject_t texture, const 
             if(alpha_s > alpha_e){
                 #pragma unroll
                 for (int b = 0; b < channels; b++) {
-                    output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = 0.0f;
+                    if constexpr (std::is_same_v<T, float>) {
+                        output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = 0.0f;
+                    } else if constexpr (std::is_same_v<T, unsigned short>) {
+                        __half half_result = __float2half(0.0f);
+                        output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = 
+                            *reinterpret_cast<unsigned short*>(&half_result);
+                    } else {
+                        output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = __float2half(0.0f);
+                    }
                 }
                 return;
             }
@@ -103,8 +111,19 @@ radon_forward_kernel(T *__restrict__ output, cudaTextureObject_t texture, const 
 
         #pragma unroll
         for (int b = 0; b < channels; b++) {
-            output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] =
-                    accumulator[b] * n;
+            const float result = accumulator[b] * n;
+            // Handle type conversion properly
+            if constexpr (std::is_same_v<T, float>) {
+                output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = result;
+            } else if constexpr (std::is_same_v<T, unsigned short>) {
+                // For unsigned short, convert float to __half first, then to unsigned short
+                __half half_result = __float2half(result);
+                output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = 
+                    *reinterpret_cast<unsigned short*>(&half_result);
+            } else {
+                // For __half type
+                output[(batch_id + b) * cfg.det_count * cfg.n_angles + angle_id * cfg.det_count + ray_id] = __float2half(result);
+            }
         }
     }
 }
@@ -133,14 +152,14 @@ void radon_forward_cuda(
                 radon_forward_kernel<4, true> << < grid_dim, block_dim >> > (y, tex->texture, angles, cfg);
             } else{
                 radon_forward_kernel<4, true> << < grid_dim, block_dim >> >
-                                                        ((__half *) y, tex->texture, angles, cfg);
+                                                        ((T *) y, tex->texture, angles, cfg);
             }
         } else {
             if(is_float){
                 radon_forward_kernel<4, false> << < grid_dim, block_dim >> > (y, tex->texture, angles, cfg);
             } else{
                 radon_forward_kernel<4, false> << < grid_dim, block_dim >> >
-                                                        ((__half *) y, tex->texture, angles, cfg);
+                                                        ((T *) y, tex->texture, angles, cfg);
             }
         }
     } else {
@@ -149,15 +168,23 @@ void radon_forward_cuda(
                 radon_forward_kernel<1, true> << < grid_dim, block_dim >> > (y, tex->texture, angles, cfg);
             } else{
                 radon_forward_kernel<1, true> << < grid_dim, block_dim >> >
-                                                        ((__half *) y, tex->texture, angles, cfg);
+                                                        ((T *) y, tex->texture, angles, cfg);
             }
         } else {
             if(is_float){
                 radon_forward_kernel<1, false> << < grid_dim, block_dim >> > (y, tex->texture, angles, cfg);
             } else{
                 radon_forward_kernel<1, false> << < grid_dim, block_dim >> >
-                                                        ((__half *) y, tex->texture, angles, cfg);
+                                                        ((T *) y, tex->texture, angles, cfg);
             }
         }
     }
 }
+
+template void
+radon_forward_cuda<float>(const float *x, const float *angles, float *y, TextureCache &tex_cache, const RaysCfg &cfg,
+                          const int batch_size, const int device);
+
+template void radon_forward_cuda<unsigned short>(const unsigned short *x, const float *angles, unsigned short *y,
+                                                 TextureCache &tex_cache, const RaysCfg &cfg,
+                                                 const int batch_size, const int device);

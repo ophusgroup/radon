@@ -7,6 +7,7 @@
 #include "include/cache.h"
 #include "include/texture.h"
 #include "include/forward.h"
+#include "include/backprojection.h"
 
 #define CHECK_CUDA(x) TORCH_CHECK(x.device().is_cuda(), #x " must be a CUDA tensor")
 #define CHECK_CONTIGUOUS(x) TORCH_CHECK(x.is_contiguous(), #x " must be contiguous")
