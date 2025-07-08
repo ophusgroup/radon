@@ -20,6 +20,57 @@ extern "C" void launch_subtract_arrays(torch::Tensor& a, torch::Tensor& b, torch
 
 namespace py = pybind11;
 
+torch::Tensor radon_forward(torch::Tensor x, torch::Tensor angles, TextureCache &tex_cache, const RaysCfg rays_cfg) {
+    CHECK_INPUT(x);
+    CHECK_INPUT(angles);
+
+    auto dtype = x.dtype();
+
+    const int batch_size = x.size(0);
+    const int device = x.device().index();
+
+    // allocate output sinogram tensor
+    auto options = torch::TensorOptions().dtype(dtype).device(x.device());
+    auto y = torch::empty({batch_size, rays_cfg.n_angles, rays_cfg.det_count}, options);
+
+    if (dtype == torch::kFloat16) {
+        radon_forward_cuda((unsigned short *) x.data_ptr<at::Half>(), angles.data_ptr<float>(),
+                           (unsigned short *) y.data_ptr<at::Half>(),
+                           tex_cache, rays_cfg, batch_size, device);
+    } else {
+        radon_forward_cuda(x.data_ptr<float>(), angles.data_ptr<float>(), y.data_ptr<float>(),
+                           tex_cache, rays_cfg, batch_size, device);
+    }
+    return y;
+}
+
+torch::Tensor
+radon_backward(torch::Tensor x, torch::Tensor angles, TextureCache &tex_cache, const RaysCfg rays_cfg) {
+    CHECK_INPUT(x);
+    CHECK_INPUT(angles);
+
+    auto dtype = x.dtype();
+
+    const int batch_size = x.size(0);
+    const int device = x.device().index();
+
+    TORCH_CHECK(angles.size(0) <= 4096, "Can only support up to 4096 angles")
+
+    // create output image tensor
+    auto options = torch::TensorOptions().dtype(dtype).device(x.device());
+    auto y = torch::empty({batch_size, rays_cfg.height, rays_cfg.width}, options);
+
+    if (dtype == torch::kFloat16) {
+        radon_backward_cuda((unsigned short *) x.data_ptr<at::Half>(), angles.data_ptr<float>(),
+                            (unsigned short *) y.data_ptr<at::Half>(),
+                            tex_cache, rays_cfg, batch_size, device);
+    } else {
+        radon_backward_cuda(x.data_ptr<float>(), angles.data_ptr<float>(), y.data_ptr<float>(),
+                            tex_cache, rays_cfg, batch_size, device);
+    }
+
+    return y;
+}
 
 // Python wrapper function
 void add_arrays_cuda(
@@ -78,4 +129,15 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
     m.doc() = "Simple CUDA array addition example";
     m.def("add_arrays", &add_arrays_cuda, "Add two arrays using CUDA");
     m.def("subtract_arrays", &subtract_arrays_cuda, "Subtract two arrays using CUDA");
+
+    m.def("forward", &radon_forward, "Radon forward projection");
+    m.def("backward", &radon_backward, "Radon back projection");
+
+    py::class_<TextureCache>(m, "TextureCache")
+        .def(py::init<size_t>())
+        .def("free", &TextureCache::free);
+
+    py::class_<RaysCfg>(m, "RaysCfg")
+        .def(py::init<int, int, int, float, int, bool>())  // Only 6 parameters
+        .def_readwrite("det_count", &RaysCfg::det_count);
 }
